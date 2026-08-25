@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('layout/head') %>
+</head>
+<body class="bg-[#000] flex flex-col min-h-screen lg:h-screen lg:overflow-hidden">
+    <header class="shrink-0 bg-[#0f0f12] border-b border-white/10 px-4 py-3 flex items-center justify-between z-20">
+        <nav aria-label="Breadcrumb">
+            <div class="flex items-center gap-4">
+                <a href="/anime/<%= anime.slug %>" class="text-slate-400 hover:text-white transition p-1 rounded-full hover:bg-white/10" aria-label="Back to Anime Details">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </a>
+                <h1 class="font-bold text-white text-sm md:text-base line-clamp-1 max-w-[200px] md:max-w-none"><%= anime.title %></h1>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow flex flex-col lg:flex-row lg:overflow-hidden">
+        <article class="w-full lg:w-3/4 bg-black flex flex-col relative shrink-0 lg:overflow-y-auto custom-scroll">
+            <section class="relative w-full aspect-video bg-black shrink-0" aria-label="Video Player">
+                <% if (url) { %>
+                    <iframe src="<%= url %>" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen title="Video player for <%= anime.title %>"></iframe>
+                <% } else { %>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-900/50">
+                        <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p>Stream Error</p>
+                    </div>
+                <% } %>
+            </section>
+            
+            <section class="p-4 md:p-6 bg-[#0f0f12] border-b border-white/5 lg:border-none" aria-label="Episode Information">
+                <div class="flex flex-wrap justify-between items-center gap-4 mb-3">
+                    <% 
+                        const currentEpsIndex = anime.episodes.findIndex(e => e.id === currentEps);
+                        const currentEpsData = anime.episodes[currentEpsIndex];
+                        const displayTitle = currentEpsData ? currentEpsData.title : 'Episode ' + currentEps;
+                        
+                        let prevEps = null;
+                        let nextEps = null;
+                        
+                        if (currentEpsIndex !== -1) {
+                            if (currentEpsIndex > 0) prevEps = anime.episodes[currentEpsIndex - 1];
+                            if (currentEpsIndex < anime.episodes.length - 1) nextEps = anime.episodes[currentEpsIndex + 1];
+                        }
+                    %>
+                    <span class="text-xs md:text-sm font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20"><%= displayTitle %></span>
+                    <nav class="flex gap-2" aria-label="Episode Navigation">
+                        <% if(prevEps) { %>
+                            <a href="/watch/<%= anime.slug %>/<%= prevEps.slug %>" class="text-xs md:text-sm bg-slate-800 hover:bg-slate-700 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition flex items-center gap-1" aria-label="Previous Episode">
+                                <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Prev
+                            </a>
+                        <% } %>
+                        <% if(nextEps) { %>
+                            <a href="/watch/<%= anime.slug %>/<%= nextEps.slug %>" class="text-xs md:text-sm bg-purple-600 hover:bg-purple-700 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition flex items-center gap-1" aria-label="Next Episode">
+                                Next <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                        <% } %>
+                    </nav>
+                </div>
+                <h2 class="text-white font-medium text-lg md:text-xl leading-tight"><%= anime.title %></h2>
+            </section>
+
+            <section id="komentar" class="p-4 md:p-6 bg-[#0b0c15] shrink-0" aria-label="Komentar">
+                <h3 class="text-sm md:text-base font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    Komentar <span class="text-zinc-500 normal-case font-medium">(<%= typeof commentCount !== 'undefined' ? commentCount : 0 %>)</span>
+                </h3>
+
+                <% if (typeof komenOk !== 'undefined' && komenOk) { %>
+                    <div class="mb-4 text-xs text-green-300 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-2.5"><%= komenOk %></div>
+                <% } %>
+                <% if (typeof komenErr !== 'undefined' && komenErr) { %>
+                    <div class="mb-4 text-xs text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5"><%= komenErr %></div>
+                <% } %>
+
+                <% if (typeof authUser !== 'undefined' && authUser) { %>
+                    <form method="POST" action="/watch/<%= anime.slug %>/<%= (anime.episodes.find(e => e.id === currentEps) || {}).slug || currentEps + '-episode' %>/comment" class="mb-6">
+                        <div class="flex gap-3">
+                            <% if (authUser.avatar_url) { %><img src="<%= authUser.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" referrerpolicy="no-referrer"><% } else { %><span class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-black shrink-0"><%= authUser.username.charAt(0).toUpperCase() %></span><% } %>
+                            <div class="flex-1">
+                                <textarea name="body" rows="2" maxlength="<%= typeof commentMax !== 'undefined' ? commentMax : 500 %>" required placeholder="Tulis komentar sebagai <%= authUser.username %><%= typeof authLv !== 'undefined' && authLv ? ' — Lv.' + authLv.level + ' ' + authLv.rank.icon + ' ' + authLv.rank.name : '' %>..." class="w-full bg-zinc-800/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-zinc-600"></textarea>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-[10px] text-zinc-600">maks <%= typeof commentMax !== 'undefined' ? commentMax : 500 %> karakter · jeda <%= typeof commentRate !== 'undefined' ? commentRate : 15 %> detik antar komentar<% if ((typeof commentMax !== 'undefined' ? commentMax : 500) > 500) { %> <span class="text-amber-400 font-bold">💎 dilonggarkan VIP</span><% } %></span>
+                                    <button class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-5 py-2 rounded-full transition active:scale-95">Kirim</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                <% } else if (commentsEnabled) { %>
+                    <a href="/login?next=<%= encodeURIComponent('/watch/' + anime.slug + '/' + currentEps) %>" class="block mb-6 text-center text-xs md:text-sm text-zinc-400 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 hover:bg-white/[0.06] transition">
+                        <span class="text-purple-400 font-bold">Masuk</span> untuk menulis komentar
+                    </a>
+                <% } %>
+
+                <% if (commentsEnabled && comments && comments.length) { %>
+                    <div class="space-y-4">
+                        <% comments.forEach(c => { %>
+                            <div class="flex gap-3">
+                                <% if (c.avatar_url) { %><img src="<%= c.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover shrink-0 <%= c.isVip ? 'vip-frame' : '' %>" referrerpolicy="no-referrer"><% } else { %><span class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-black shrink-0 <%= c.isVip ? 'vip-frame' : '' %>"><%= c.username.charAt(0).toUpperCase() %></span><% } %>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs md:text-sm font-bold <%= c.isVip ? 'vip-name' : (c.role === 'owner' ? 'text-yellow-300' : (c.role === 'admin' ? 'text-purple-300' : 'text-zinc-200')) %>"><%= c.username %></span>
+                                        <% if (c.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">👑 OWNER</span>
+                                        <% } else if (c.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">🛡 ADMIN</span><% } %>
+                                        <% if (c.isVip) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">💎 VIP</span><% } %>
+                                        <% if (typeof c.lv !== 'undefined' && c.lv) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded border" style="color: <%= c.lv.rank.color %>; background: <%= c.lv.rank.color %>1a; border-color: <%= c.lv.rank.color %>55" title="<%= c.lv.xp %> EXP"><%= c.lv.rank.icon %> Lv.<%= c.lv.level %> · <%= c.lv.rank.name %></span><% } %>
+                                        <span class="text-[10px] text-zinc-600"><%= c.rel %></span>
+                                        <% if (typeof authUser !== 'undefined' && authUser && (authUser.id === c.user_id || authUser.role === 'owner' || authUser.role === 'admin')) { %>
+                                            <form method="POST" action="/watch/comment/<%= c.id %>/delete" onsubmit="return confirm('Hapus komentar ini?')" class="inline">
+                                                <input type="hidden" name="next" value="/watch/<%= anime.slug %>/<%= (anime.episodes.find(e => e.id === currentEps) || {}).slug || currentEps + '-episode' %>">
+                                                <button class="text-[10px] text-zinc-600 hover:text-red-400 transition">hapus</button>
+                                            </form>
+                                        <% } %>
+                                    </div>
+                                    <p class="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed break-words"><%= c.body %></p>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else if (commentsEnabled) { %>
+                    <p class="text-center text-xs text-zinc-600 py-6">Belum ada komentar. Jadilah yang pertama!</p>
+                <% } else { %>
+                    <p class="text-center text-xs text-zinc-600 py-6">Komentar nonaktif (database belum dikonfigurasi).</p>
+                <% } %>
+            </section>
+        </article>
+
+        <aside class="w-full lg:w-1/4 bg-[#0b0c15] border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col lg:h-full min-h-0" aria-label="Episode List">
+            <header class="p-3 md:p-4 border-b border-white/5 bg-[#0f0f12]">
+                <h3 class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider">Daftar Episode</h3>
+            </header>
+            
+            <nav class="overflow-y-auto custom-scroll p-2 md:p-3 space-y-2 lg:flex-grow" aria-label="Episodes">
+                <% anime.episodes.forEach(eps => { %>
+                    <a href="/watch/<%= anime.slug %>/<%= eps.slug %>" data-eps="<%= eps.id %>"
+                       class="flex items-center gap-3 p-3 rounded-lg transition-all group <%= currentEps === eps.id ? 'bg-purple-600/10 border border-purple-500/50' : 'bg-slate-800/40 border border-transparent hover:bg-slate-800' %>"
+                       <% if(currentEps === eps.id) { %>aria-current="page"<% } %>>
+                        
+                        <div class="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center <%= currentEps === eps.id ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-slate-600' %>">
+                            <% if(currentEps === eps.id) { %>
+                                <svg class="w-3 h-3 md:w-4 md:h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                            <% } else { %>
+                                <span class="text-[10px] md:text-xs font-bold"><%= eps.title.replace(/\D/g, '') %></span>
+                            <% } %>
+                        </div>
+                        
+                        <div class="flex-col overflow-hidden">
+                            <span class="block text-sm md:text-base font-medium truncate <%= currentEps === eps.id ? 'text-purple-300' : 'text-slate-300 group-hover:text-white' %>">
+                                <%= eps.title %>
+                                <svg class="watched-badge inline-block w-3.5 h-3.5 md:w-4 md:h-4 text-purple-400 -mt-0.5" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="Sudah ditonton"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                            <span class="text-[10px] md:text-xs text-slate-500">Click to Play Episode</span>
+                        </div>
+                    </a>
+                <% }) %>
+            </nav>
+        </aside>
+    </main>
+
+    <script>
+        // Simpan ke "Lanjutkan Nonton" setiap kali episode dibuka.
+        // JSON + escape \u003c agar aman disisipkan langsung di <script>.
+        (function () {
+            if (!window.WibuStore) return
+            var item = <%- JSON.stringify({
+                animeId: String(anime.id),
+                slug: anime.slug,
+                title: anime.title,
+                img: anime.img,
+                epsId: String(currentEpsData ? currentEpsData.id : currentEps),
+                epsSlug: currentEpsData ? currentEpsData.slug : `${currentEps}-episode`,
+                epsTitle: displayTitle
+            }).replace(/</g, '\\u003c') %>
+            WibuStore.saveContinue(item)
+            // +20 EXP per episode unik yang ditonton (maks 15 episode/hari)
+            if (window.WibuLevel) WibuLevel.grant('watch', item.animeId + ':' + item.epsId)
+
+            // Guard: app.js lama (cache) belum punya fungsi watched -> lewati bagian ini saja
+            if (!WibuStore.markWatched) return
+
+            // Tandai episode ini "sudah ditonton": lokal + server (jika login)
+            WibuStore.markWatched(item.animeId, item.epsId)
+            WibuStore.pushWatched(item.animeId, item.epsId)
+
+            // Beri tanda ✓ di daftar episode untuk semua yang sudah ditonton
+            function paintWatched(eps) {
+                var set = {}
+                eps.forEach(function (id) { set[String(id)] = true })
+                document.querySelectorAll('[data-eps]').forEach(function (a) {
+                    var on = !!set[a.getAttribute('data-eps')]
+                    var badge = a.querySelector('.watched-badge')
+                    if (badge) badge.style.display = on ? 'inline-block' : 'none'
+                    // Episode yang sedang diputar tetap terang (highlight purple)
+                    if (!a.hasAttribute('aria-current')) a.classList.toggle('opacity-50', on)
+                })
+            }
+            paintWatched(WibuStore.getWatched(item.animeId))
+            WibuStore.syncWatched(item.animeId, paintWatched)
+        })()
+    </script>
+</body>
+</html>
